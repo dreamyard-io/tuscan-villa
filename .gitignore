@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Vite cache
+.vite/
+
+# Local env / editor
+*.local
+.env
+.env.*
+
+# OS junk
+.DS_Store
+
+# Raw source media (kept locally; only public/frames_webp/ ships)
+/frames/
+/frames_png/
+/*.mp4

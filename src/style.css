@@ -1,0 +1,652 @@
+:root {
+  --bg: #0e0d0b;
+  --fg: #f4efe7;
+  --accent: #c9a86a;
+
+  /* Type families — serif ONLY for H1 + story, sans for everything else.
+     Fallbacks (Georgia / system-ui) share metrics closely enough that the
+     swap on webfont load doesn't jolt the layout. */
+  --font-serif: 'Italiana', Georgia, serif;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Fluid type scale — clamp(min, preferred, max): min keeps mobile legible,
+     the vw term drives the desktop drama, max caps it on wide screens. */
+  --fs-eyebrow: clamp(0.72rem, 0.68rem + 0.18vw, 0.82rem);
+  --fs-h1: clamp(2rem, 1.1rem + 4.9vw, 5.3rem);
+  --fs-sub: clamp(0.95rem, 0.88rem + 0.45vw, 1.2rem);
+  --fs-story: clamp(1.4rem, 0.85rem + 2.4vw, 2.8rem);
+  --fs-cta: clamp(0.78rem, 0.75rem + 0.15vw, 0.85rem);
+  --fs-detail: clamp(0.72rem, 0.69rem + 0.14vw, 0.85rem);
+
+  /* Shared side gutter — keeps the nav and hero header aligned to the same
+     edge. Kept small so content sits close to the viewport edges. */
+  --edge-x: 3.5vw;
+
+  /* Story fade duration (used across the hero text layer). */
+  --story-fade: 0.6s;
+
+  /* ── "The Story" section — warm, calm palette (counterpoint to the dark
+     hero): sand/cream ground, dark warm ink, warm stone. ── */
+  --story-bg: #ece4d6; /* warm sand/cream, not pure white */
+  --story-fg: #2c2822; /* dark warm ink */
+  --story-muted: #8c8272; /* taupe — captions / secondary */
+  --story-stone: #d8cdba; /* image placeholder tone */
+  --story-gap: 18vh; /* vertical rhythm between story blocks */
+
+  --fs-h2: clamp(2.6rem, 1.7rem + 4vw, 4.8rem);
+  --fs-story-body: clamp(1.05rem, 0.98rem + 0.5vw, 1.3rem);
+  --fs-story-closing: clamp(1.7rem, 1.1rem + 2.2vw, 2.9rem);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Smooth scroll for the "Discover the story" CTA anchor. */
+html {
+  scroll-behavior: smooth;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+}
+
+/* While the first frames are still loading, prevent the page from scrolling. */
+html.hero-locked,
+html.hero-locked body {
+  overflow: hidden;
+}
+
+/* ── Scroll-scrub sections ─────────────────────────────────────────────
+ * Each section is tall to give the scrub its runway; a sticky canvas stays
+ * pinned to the viewport while we scroll through the section's height.
+ * initScrollScrub sets the authoritative height inline (from its config); the
+ * values here are just pre-JS fallbacks to avoid a layout flash.
+ */
+#hero-sequence {
+  position: relative;
+  height: 500vh;
+}
+
+#flythrough {
+  position: relative;
+  height: 300vh;
+}
+
+.hero-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Canvas internal resolution is the frame size; here we stretch it to fill
+ * the viewport, cropping with object-fit: cover. The flythrough canvas is
+ * itself sticky (no wrapper needed — it's the only child). */
+[data-hero-canvas],
+#flythrough-canvas {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  background: var(--bg);
+}
+
+#flythrough-canvas {
+  position: sticky;
+  top: 0;
+}
+
+/* ── Loading indicator ─────────────────────────────────────────────────*/
+[data-hero-loader] {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  background: var(--bg);
+  z-index: 2;
+  transition: opacity 0.5s ease;
+}
+
+/* Once ready, fade out the loader and stop it intercepting pointer/scroll. */
+#hero-sequence.is-ready [data-hero-loader] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.hero-loader__track {
+  width: min(60vw, 320px);
+  height: 3px;
+  background: rgba(244, 239, 231, 0.15);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+[data-hero-loader-bar] {
+  height: 100%;
+  width: 0%;
+  background: var(--accent);
+  transition: width 0.2s ease;
+}
+
+.hero-loader__label {
+  font-size: 0.8rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+/* ── Readability scrim ─────────────────────────────────────────────────
+ * Soft gradient at top and bottom only — keeps text legible over both the
+ * bright ruin and the darker finished frames without flattening the image.
+ */
+.hero-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    /* Bottom-left corner pool — darkens the ground under the header block so
+       the eyebrow/H1 stay legible over the bright stone. */
+    radial-gradient(
+      135% 105% at 0% 100%,
+      rgba(0, 0, 0, 0.6) 0%,
+      rgba(0, 0, 0, 0.18) 42%,
+      rgba(0, 0, 0, 0) 64%
+    ),
+    linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.4) 0%,
+      rgba(0, 0, 0, 0) 26%
+    ),
+    linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.68) 0%,
+      rgba(0, 0, 0, 0.24) 32%,
+      rgba(0, 0, 0, 0) 60%
+    );
+}
+
+/* ── Top navigation ────────────────────────────────────────────────────
+ * Fixed over the hero. The bar itself is click-through (so you can scroll by
+ * grabbing empty space); only the brand and links are interactive. Lives in
+ * the top scrim zone, plus a text-shadow, so it stays legible over any frame.
+ */
+.site-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10; /* above the hero overlay + loader */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.3rem var(--edge-x); /* left edge aligns with the hero header */
+  pointer-events: none;
+  color: var(--fg);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55), 0 1px 20px rgba(0, 0, 0, 0.45);
+}
+
+.site-nav__brand {
+  pointer-events: auto;
+  font-family: var(--font-serif);
+  font-style: normal;
+  font-weight: 400;
+  font-size: clamp(1.2rem, 1rem + 0.8vw, 1.65rem);
+  letter-spacing: 0.01em;
+  color: var(--fg);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.site-nav__links {
+  display: flex;
+  align-items: center;
+  gap: clamp(1.1rem, 1.8vw, 2.4rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.site-nav__link {
+  pointer-events: auto;
+  font-family: var(--font-sans);
+  font-size: var(--fs-cta);
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg);
+  text-decoration: none;
+  opacity: 0.82;
+  transition: opacity 0.25s ease;
+}
+
+.site-nav__link:hover {
+  opacity: 1;
+}
+
+/* ── Text overlay ──────────────────────────────────────────────────────
+ * Fills the sticky viewport. Pointer-events off by default so scroll passes
+ * through; re-enabled only on the CTA buttons.
+ */
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  color: var(--fg);
+  text-align: center;
+  text-shadow: 0 1px 24px rgba(0, 0, 0, 0.45);
+}
+
+/* Static header — tucked into the bottom-left corner (editorial hero),
+   left-aligned, visible at rest, fades out once scroll starts. */
+.hero-header {
+  position: absolute;
+  left: var(--edge-x);
+  right: var(--edge-x); /* stretch full width (edge gutter both sides) */
+  bottom: 5vh;
+  /* H1 and paragraph as two equal columns, bottom-aligned. */
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 5vw;
+  align-items: end;
+  text-align: left;
+  /* Stronger than the overlay default — header sits over bright stone. */
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.55),
+    0 2px 28px rgba(0, 0, 0, 0.6);
+  transition: opacity var(--story-fade) ease,
+    transform var(--story-fade) ease;
+}
+
+.hero-header.is-hidden {
+  opacity: 0;
+  transform: translateY(1.2rem);
+}
+
+/* In the header's 1:1 grid the sub fills its column (no cap / auto-centering). */
+.hero-header .hero-sub {
+  margin: 0;
+  max-width: none;
+}
+
+.hero-eyebrow {
+  margin: 0 0 1.1rem;
+  font-family: var(--font-sans);
+  font-size: var(--fs-eyebrow);
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.hero-title {
+  margin: 0 0 1.2rem;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: var(--fs-h1);
+  line-height: 1.05;
+  letter-spacing: -0.015em; /* tightened a touch at hero scale */
+}
+
+.hero-sub {
+  margin: 0 auto;
+  max-width: 46ch;
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: var(--fs-sub);
+  line-height: 1.6;
+  opacity: 0.85;
+}
+
+/* Story text — dead center of the screen. One line shown at a time, cross-faded.
+   All lines share a single grid cell so they stack and the box sizes to the
+   tallest beat (the H1-scale finale) — the center stays put, nothing jumps. */
+.hero-story {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  /* Exact screen center — the header is gone by the time the story shows, so
+     there's no longer anything to clear. */
+  transform: translate(-50%, -50%);
+  width: min(94vw, 900px);
+  display: grid;
+}
+
+.hero-story__line {
+  grid-area: 1 / 1; /* stack every line in the same cell */
+  align-self: center; /* each line centered within the (constant) box */
+  margin: 0;
+  font-family: var(--font-serif);
+  font-style: normal;
+  font-weight: 400;
+  font-size: var(--fs-story);
+  line-height: 1.25;
+  /* The story sits mid-frame where the scrim is faint — a layered shadow
+     (crisp + soft halo) keeps the light 400 weight legible over both the
+     bright ruin and the dark finale. */
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.85),
+    0 0 46px rgba(0, 0, 0, 0.65);
+  opacity: 0;
+  transform: translateY(0.5rem);
+  transition: opacity var(--story-fade) ease,
+    transform var(--story-fade) ease;
+}
+
+.hero-story__line.is-active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Final beat ("Welcome home.") lands at the H1 scale for a big finish. */
+.hero-story__line:last-child {
+  font-size: var(--fs-h1);
+}
+
+/* Final block — CTA + micro-details, revealed in the last phase. */
+.hero-final {
+  position: absolute;
+  left: 50%;
+  bottom: 6vh;
+  transform: translateX(-50%) translateY(0.8rem);
+  width: min(94vw, 720px);
+  opacity: 0;
+  transition: opacity var(--story-fade) ease,
+    transform var(--story-fade) ease;
+}
+
+.hero-final.is-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.hero-cta {
+  /* Equal-width buttons: 1fr columns sized to the widest, box hugs content. */
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 0.8rem;
+  width: fit-content;
+  margin: 0 auto 1.2rem;
+}
+
+.btn {
+  pointer-events: auto; /* only interactive element in the overlay */
+  display: inline-block;
+  padding: 0.85rem 1.6rem;
+  font-family: var(--font-sans);
+  font-size: var(--fs-cta);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-align: center;
+  text-decoration: none;
+  border-radius: 2px;
+  transition: background-color 0.25s ease, color 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.btn--primary {
+  background: var(--accent);
+  color: #1a160f;
+}
+
+.btn--primary:hover {
+  background: #d8bd85;
+}
+
+.btn--ghost {
+  color: var(--fg);
+  border: 1px solid rgba(244, 239, 231, 0.5);
+}
+
+.btn--ghost:hover {
+  border-color: var(--fg);
+  background: rgba(244, 239, 231, 0.08);
+}
+
+.hero-details {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-detail);
+  font-weight: 400;
+  letter-spacing: 0.09em;
+  opacity: 0.8;
+}
+
+/* ── Mobile: smaller type, tighter placement, keep story from overflowing.*/
+@media (max-width: 600px) {
+  :root {
+    --edge-x: 4vw; /* a touch more breathing room than desktop for thumbs */
+  }
+  .site-nav {
+    padding: 1.05rem var(--edge-x);
+  }
+  /* Placeholder links would overflow the narrow bar — hide them until the
+     mobile menu is built (brand stays). */
+  .site-nav__links {
+    display: none;
+  }
+  .hero-header {
+    bottom: 5vh;
+    /* Stack the two columns back on top of each other on narrow screens. */
+    grid-template-columns: 1fr;
+    row-gap: 1.3rem;
+  }
+  .hero-eyebrow {
+    letter-spacing: 0.18em;
+  }
+  .hero-story {
+    width: 92vw;
+  }
+  /* Story size is handled by the fluid --fs-story (min 1.4rem stays legible
+     and won't overflow); no per-breakpoint override needed. */
+  .hero-final {
+    bottom: 4.5vh;
+    width: 94vw;
+  }
+  .hero-cta {
+    /* Stack full-width on narrow screens. */
+    grid-auto-flow: row;
+    width: auto;
+  }
+}
+
+/* ── Reduced motion: drop the movement, keep a minimal opacity cue. ─────*/
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .hero-header,
+  .hero-header.is-hidden,
+  .hero-story__line,
+  .hero-story__line.is-active,
+  .hero-final,
+  .hero-final.is-visible {
+    transition-duration: 0.001s;
+  }
+  /* Drop the entrance offsets; keep only the centering transforms. */
+  .hero-header,
+  .hero-header.is-hidden,
+  .hero-story__line,
+  .hero-story__line.is-active {
+    transform: none;
+  }
+  .hero-final,
+  .hero-final.is-visible {
+    transform: translateX(-50%);
+  }
+}
+
+/* ── Scroll reveal ─────────────────────────────────────────────────────
+ * Elements marked [data-reveal] fade + rise in the first time they enter the
+ * viewport (scrollReveal.js toggles .is-revealed). Deliberately gentle.
+ */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+[data-reveal].is-revealed {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* ── "The Story" — quiet, read section ─────────────────────────────────
+ * Airy, warm, lots of negative space. Alternating text/image acts, a
+ * before/after pair, and a centred closing line.
+ */
+.story {
+  background: var(--story-bg);
+  color: var(--story-fg);
+  padding: clamp(18vh, 22vh, 30vh) 0; /* lots of breathing room top and bottom */
+}
+
+.story__inner {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0 clamp(1.5rem, 6vw, 6rem);
+  display: flex;
+  flex-direction: column;
+  gap: var(--story-gap); /* generous vertical rhythm between blocks */
+}
+
+.story__head {
+  /* rem-based so it isn't tied to the head's small base font (ch would be) —
+     wide enough that the big two-line title never wraps a line further. */
+  max-width: 46rem;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.story__eyebrow {
+  margin: 0 0 1.2rem;
+  font-family: var(--font-sans);
+  font-size: var(--fs-eyebrow);
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent); /* same warm gold as the hero eyebrow */
+}
+
+.story__title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: var(--fs-h2);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+}
+
+/* Alternating two-column blocks. The image gets the wider column so it reads
+   large; the modifier tracks which side the image sits on (kept consistent
+   whichever way the DOM orders text/image). On mobile they collapse to one
+   column with the image on top. */
+.story-block {
+  display: grid;
+  gap: clamp(2rem, 5vw, 5rem);
+  align-items: center;
+}
+
+.story-block--image-right {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); /* text | image */
+}
+
+.story-block--image-left {
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); /* image | text */
+}
+
+.story-block__text {
+  max-width: 46ch; /* comfortable reading measure */
+}
+
+.story-block__text p {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-story-body);
+  font-weight: 400;
+  line-height: 1.75; /* airy leading */
+  color: var(--story-fg);
+}
+
+/* Media */
+.story-block__media {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: var(--story-stone); /* placeholder tone until the image loads */
+}
+
+.story-block__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Act II reads cooler / melancholic — a gentle desaturation + cool wash. */
+.story-block__media--muted img {
+  filter: saturate(0.72) brightness(0.95);
+}
+
+.story-block__media--muted::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(48, 58, 68, 0.16);
+  pointer-events: none;
+}
+
+/* Closing line — centred, big serif, extra air above and below. */
+.story__closing {
+  margin: clamp(4vh, 6vh, 8vh) auto;
+  max-width: 24ch;
+  text-align: center;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: var(--fs-story-closing);
+  line-height: 1.32;
+  color: var(--story-fg);
+}
+
+/* Story: mobile — single column, image above text, tighter rhythm. */
+@media (max-width: 700px) {
+  .story {
+    padding: clamp(9vh, 11vh, 14vh) 0;
+  }
+  .story__inner {
+    gap: 9vh;
+  }
+  .story-block,
+  .story-block--image-right,
+  .story-block--image-left {
+    grid-template-columns: 1fr;
+    gap: 1.8rem;
+  }
+  .story-block__media {
+    order: -1; /* image above text regardless of DOM order */
+  }
+  .story-block__text {
+    max-width: none;
+  }
+}
+

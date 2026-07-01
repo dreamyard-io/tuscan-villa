@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tuscan Villa — Restored 2026</title>
+
+    <!-- Type system: Italiana (serif → H1 + story; single 400 weight, upright
+         only) + Inter 400/500 (sans → all else). Only the weights we use are
+         requested. display=swap renders fallbacks first, then swaps in. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Italiana&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- Fixed top navigation, sits over the hero. -->
+    <nav class="site-nav">
+      <a class="site-nav__brand" href="#">Tuscan Villa</a>
+      <!-- Placeholder links — real labels/targets to follow later. -->
+      <ul class="site-nav__links">
+        <li><a class="site-nav__link" href="#">The Villa</a></li>
+        <li><a class="site-nav__link" href="#story">The Story</a></li>
+        <li><a class="site-nav__link" href="#">Gallery</a></li>
+        <li><a class="site-nav__link" href="#">The Grounds</a></li>
+        <li><a class="site-nav__link" href="#">Enquire</a></li>
+      </ul>
+    </nav>
+
+    <!-- Scroll track for the frame-scrubbed hero. -->
+    <section id="hero-sequence">
+      <div class="hero-sticky">
+        <canvas data-hero-canvas></canvas>
+
+        <!-- Readability scrim: soft gradient top+bottom, never a full overlay. -->
+        <div class="hero-scrim" aria-hidden="true"></div>
+
+        <!-- Loading indicator (hidden once ~30 frames are buffered). -->
+        <div data-hero-loader>
+          <div class="hero-loader__track">
+            <div data-hero-loader-bar></div>
+          </div>
+          <div class="hero-loader__label">
+            Loading <span data-hero-loader-text>0%</span>
+          </div>
+        </div>
+
+        <!-- ── Text layer (pointer-events only on the CTA) ─────────────── -->
+        <div class="hero-overlay">
+          <!-- Static header: visible at the top, fades out once scroll begins. -->
+          <header class="hero-header" data-hero-header>
+            <!-- Left column: eyebrow + headline. -->
+            <div class="hero-header__lead">
+              <p class="hero-eyebrow">Tuscany · Restored 2026</p>
+              <h1 class="hero-title">
+                Where centuries<br />meet the light<br />of today
+              </h1>
+            </div>
+            <!-- Right column: supporting paragraph. -->
+            <p class="hero-sub">
+              Once a forgotten farmhouse among the olive groves, now a home
+              where original stone and modern glass hold the same quiet.
+            </p>
+          </header>
+
+          <!-- Scroll-synced story: exactly one phase visible at a time. -->
+          <div class="hero-story" data-hero-story>
+            <p class="hero-story__line" data-hero-story-item>
+              For decades, it stood silent.
+            </p>
+            <p class="hero-story__line" data-hero-story-item>
+              Then, careful hands began.
+            </p>
+            <p class="hero-story__line" data-hero-story-item>
+              Stone by stone, light by light.
+            </p>
+            <p class="hero-story__line" data-hero-story-item>Welcome home.</p>
+          </div>
+
+          <!-- Final block: CTA + micro-details, fades in at the last phase. -->
+          <div class="hero-final" data-hero-final>
+            <div class="hero-cta">
+              <a class="btn btn--primary" href="#contact">Private viewing</a>
+              <a class="btn btn--ghost" href="#story">Discover the story</a>
+            </div>
+            <p class="hero-details">
+              4 bedrooms · 380 m² · 2 hectares of olive grove · 20 min from
+              Florence
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── The Story — a quiet, read section. Deliberate calm after the
+         dramatic hero: no scrubbing, just an elegant scroll reveal. ── -->
+    <section id="story" class="story">
+      <div class="story__inner">
+        <header class="story__head" data-reveal>
+          <p class="story__eyebrow">The Story</p>
+          <h2 class="story__title">
+            Seven hundred years,<br />held in stone
+          </h2>
+        </header>
+
+        <!-- Act I — text left, image right -->
+        <div class="story-block story-block--image-right">
+          <div class="story-block__text" data-reveal>
+            <p>
+              The tower came first. Raised in the fourteenth century as a
+              watchpoint over the valley, its walls were built to outlast the
+              people who laid them — and they did. In the centuries that
+              followed, a farmhouse grew around its base, and the hillside
+              filled with olive trees. Generations pressed their oil here, kept
+              their wine in the cool of the ground floor, and watched the same
+              hills soften into evening.
+            </p>
+          </div>
+          <figure class="story-block__media" data-reveal>
+            <img
+              src="images/story-1.jpg"
+              alt="Detail of the villa's hand-laid stone in warm light"
+              loading="lazy"
+              width="1280"
+              height="1600"
+            />
+          </figure>
+        </div>
+
+        <!-- Act II — image left, text right (cooler, melancholic) -->
+        <div class="story-block story-block--image-left">
+          <figure class="story-block__media story-block__media--muted" data-reveal>
+            <img
+              src="images/story-2-ruin.jpg"
+              alt="The abandoned farmhouse standing as a ruin"
+              loading="lazy"
+              width="1280"
+              height="1600"
+            />
+          </figure>
+          <div class="story-block__text" data-reveal>
+            <p>
+              Then, slowly, the house fell quiet. The presses stopped. Shutters
+              loosened, the roof gave way to the sky, and the olive grove grew
+              wild. For decades it stood empty — a beautiful ruin, remembering.
+            </p>
+          </div>
+        </div>
+
+        <!-- Act III — text left, image right (same style as Act I) -->
+        <div class="story-block story-block--image-right">
+          <div class="story-block__text" data-reveal>
+            <p>
+              Its restoration was not a demolition but a conversation. Every
+              original stone that could be saved was saved; the tower, the arched
+              niches, the hand-laid walls remain exactly where they have always
+              stood. Where the old fabric had fallen away, light was invited in —
+              floor-to-ceiling glass, warm oak, quiet modern rooms that frame the
+              landscape rather than compete with it. The result is a home where
+              seven centuries and the present day rest easily in the same walls.
+            </p>
+          </div>
+          <figure class="story-block__media" data-reveal>
+            <img
+              src="images/story-3-after.jpg"
+              alt="The restored villa today, old stone framing modern glass"
+              loading="lazy"
+              width="1280"
+              height="1600"
+            />
+          </figure>
+        </div>
+
+        <!-- Closing line -->
+        <p class="story__closing" data-reveal>
+          Old walls. New light.<br />A story still being written.
+        </p>
+      </div>
+    </section>
+
+    <!-- Fly-through: camera flies through the house into the garden.
+         Own scrubbed frame sequence (public/flythrough_webp/), own scroll track. -->
+    <section id="flythrough">
+      <canvas id="flythrough-canvas"></canvas>
+    </section>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
