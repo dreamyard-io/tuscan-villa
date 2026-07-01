@@ -1,5 +1,7 @@
 # Tuscan Villa
 
+**Live:** https://dreamyard-io.github.io/tuscan-villa/
+
 A scroll-scrubbed hero for a restored Tuscan villa. As you scroll, a 120-frame
 WebP sequence (ruin → build → finished villa) is painted onto a `<canvas>`,
 driven by scroll position. A synchronised text layer fades a short story through
