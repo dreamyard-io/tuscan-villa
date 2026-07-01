@@ -1,4 +1,4 @@
-# Tuscan Villa — scroll-driven hero
+# Tuscan Villa
 
 A scroll-scrubbed hero for a restored Tuscan villa. As you scroll, a 120-frame
 WebP sequence (ruin → build → finished villa) is painted onto a `<canvas>`,
