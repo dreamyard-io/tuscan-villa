@@ -29,7 +29,6 @@
      hero): sand/cream ground, dark warm ink, warm stone. ── */
   --story-bg: #ece4d6; /* warm sand/cream, not pure white */
   --story-fg: #2c2822; /* dark warm ink */
-  --story-muted: #8c8272; /* taupe — captions / secondary */
   --story-stone: #d8cdba; /* image placeholder tone */
   --story-gap: 18vh; /* vertical rhythm between story blocks */
 
@@ -82,6 +81,7 @@ html.hero-locked body {
   position: sticky;
   top: 0;
   height: 100vh;
+  height: 100dvh; /* track mobile browser UI so nothing hides behind toolbars */
   width: 100%;
   overflow: hidden;
 }
@@ -94,6 +94,7 @@ html.hero-locked body {
   display: block;
   width: 100vw;
   height: 100vh;
+  height: 100dvh; /* keep in sync with .hero-sticky */
   object-fit: cover;
   background: var(--bg);
 }
@@ -486,25 +487,36 @@ html.hero-locked body {
   .hero-final.is-visible {
     transform: translateX(-50%);
   }
+  /* The scrub never runs under reduced motion (static first frame only), so
+     the CTA block would otherwise stay hidden forever. Pin it top-centre —
+     the buttons carry their own contrast — while the header keeps its usual
+     bottom position. */
+  .hero-final {
+    opacity: 1;
+    bottom: auto;
+    top: 16vh;
+  }
 }
 
 /* ── Scroll reveal ─────────────────────────────────────────────────────
  * Elements marked [data-reveal] fade + rise in the first time they enter the
  * viewport (scrollReveal.js toggles .is-revealed). Deliberately gentle.
+ * Scoped to html.js (set inline in <head>) so the content is never hidden
+ * when JavaScript is unavailable.
  */
-[data-reveal] {
+html.js [data-reveal] {
   opacity: 0;
   transform: translateY(20px);
   transition: opacity 0.8s ease-out, transform 0.8s ease-out;
 }
 
-[data-reveal].is-revealed {
+html.js [data-reveal].is-revealed {
   opacity: 1;
   transform: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  [data-reveal] {
+  html.js [data-reveal] {
     opacity: 1;
     transform: none;
     transition: none;
@@ -512,13 +524,13 @@ html.hero-locked body {
 }
 
 /* ── "The Story" — quiet, read section ─────────────────────────────────
- * Airy, warm, lots of negative space. Alternating text/image acts, a
- * before/after pair, and a centred closing line.
+ * Airy, warm, lots of negative space. Three alternating text/image acts and
+ * a centred closing line.
  */
 .story {
   background: var(--story-bg);
   color: var(--story-fg);
-  padding: clamp(18vh, 22vh, 30vh) 0; /* lots of breathing room top and bottom */
+  padding: 22vh 0; /* lots of breathing room top and bottom */
 }
 
 .story__inner {
@@ -603,6 +615,13 @@ html.hero-locked body {
   display: block;
 }
 
+/* While the /images/ placeholders 404 (photography to follow), hide the
+   broken-image icon so the figure shows its clean stone-tone block instead.
+   main.js adds the class when an image fails to load. */
+.story-block__media img.img-missing {
+  visibility: hidden;
+}
+
 /* Act II reads cooler / melancholic — a gentle desaturation + cool wash. */
 .story-block__media--muted img {
   filter: saturate(0.72) brightness(0.95);
@@ -618,7 +637,7 @@ html.hero-locked body {
 
 /* Closing line — centred, big serif, extra air above and below. */
 .story__closing {
-  margin: clamp(4vh, 6vh, 8vh) auto;
+  margin: 6vh auto;
   max-width: 24ch;
   text-align: center;
   font-family: var(--font-serif);
@@ -631,7 +650,7 @@ html.hero-locked body {
 /* Story: mobile — single column, image above text, tighter rhythm. */
 @media (max-width: 700px) {
   .story {
-    padding: clamp(9vh, 11vh, 14vh) 0;
+    padding: 11vh 0;
   }
   .story__inner {
     gap: 9vh;

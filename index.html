@@ -4,6 +4,27 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tuscan Villa — Restored 2026</title>
+    <meta
+      name="description"
+      content="A fourteenth-century Tuscan farmhouse, restored. Scroll through its transformation from ruin to a modern villa among the olive groves."
+    />
+    <meta property="og:title" content="Tuscan Villa — Restored 2026" />
+    <meta
+      property="og:description"
+      content="Scroll through the villa's transformation from ruin to a modern home — seven hundred years, held in stone."
+    />
+    <meta
+      property="og:image"
+      content="https://dreamyard-io.github.io/tuscan-villa/frames_webp/frame_120.webp"
+    />
+    <meta property="og:type" content="website" />
+
+    <!-- Marks JS as active before first paint — the scroll-reveal "hidden until
+         revealed" styles are scoped to html.js so content stays visible
+         when JS is unavailable. -->
+    <script>
+      document.documentElement.classList.add('js');
+    </script>
 
     <!-- Type system: Italiana (serif → H1 + story; single 400 weight, upright
          only) + Inter 400/500 (sans → all else). Only the weights we use are
@@ -32,7 +53,11 @@
     <!-- Scroll track for the frame-scrubbed hero. -->
     <section id="hero-sequence">
       <div class="hero-sticky">
-        <canvas data-hero-canvas></canvas>
+        <canvas
+          data-hero-canvas
+          role="img"
+          aria-label="The villa transforming from a ruin into a restored modern home as you scroll"
+        ></canvas>
 
         <!-- Readability scrim: soft gradient top+bottom, never a full overlay. -->
         <div class="hero-scrim" aria-hidden="true"></div>
@@ -183,7 +208,11 @@
     <!-- Fly-through: camera flies through the house into the garden.
          Own scrubbed frame sequence (public/flythrough_webp/), own scroll track. -->
     <section id="flythrough">
-      <canvas id="flythrough-canvas"></canvas>
+      <canvas
+        id="flythrough-canvas"
+        role="img"
+        aria-label="A camera fly-through of the villa, moving through the house into the garden"
+      ></canvas>
     </section>
 
     <script type="module" src="/src/main.js"></script>

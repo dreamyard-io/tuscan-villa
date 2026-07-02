@@ -50,6 +50,15 @@ const flythrough =
  * once as they enter the viewport. */
 const storyReveal = initScrollReveal({ threshold: 0.2 });
 
+/* The /images/ story placeholders 404 until real photography lands — hide a
+ * failed <img> so the figure shows its clean stone-tone block instead of the
+ * browser's broken-image icon. */
+for (const img of document.querySelectorAll('.story-block__media img')) {
+  const markMissing = () => img.classList.add('img-missing');
+  if (img.complete && img.naturalWidth === 0) markMissing();
+  else img.addEventListener('error', markMissing, { once: true });
+}
+
 /* ── Vite HMR: dispose instances before the module re-evaluates ──────── */
 if (import.meta.hot) {
   import.meta.hot.dispose(() => {
